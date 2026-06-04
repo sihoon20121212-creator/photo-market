@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Market</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:sans-serif;
+}
+
+body{
+background:#111;
+color:white;
+}
+
+header{
+padding:20px;
+text-align:center;
+background:#1b1b1b;
+}
+
+header h1{
+font-size:2rem;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+padding:20px;
+}
+
+.search{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+margin-bottom:20px;
+}
+
+.form{
+background:#1e1e1e;
+padding:20px;
+border-radius:15px;
+margin-bottom:20px;
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:8px;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+background:#4CAF50;
+border:none;
+color:white;
+border-radius:8px;
+cursor:pointer;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+}
+
+.card{
+background:#1e1e1e;
+border-radius:15px;
+overflow:hidden;
+}
+
+.card img{
+width:100%;
+height:220px;
+object-fit:cover;
+}
+
+.card-content{
+padding:15px;
+}
+
+.price{
+color:#4CAF50;
+font-weight:bold;
+margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>📸 Photo & Used Market</h1>
+<p>사진과 중고물품을 사고파는 공간</p>
+</header>
+
+<div class="container">
+
+<input
+type="text"
+class="search"
+placeholder="검색..."
+onkeyup="searchItems(this.value)"
+>
+
+<div class="form">
+
+<select id="type">
+<option>사진</option>
+<option>중고거래</option>
+</select>
+
+<input id="title" placeholder="제목">
+
+<input id="price" placeholder="가격">
+
+<input id="image" placeholder="이미지 URL">
+
+<button onclick="addItem()">등록하기</button>
+
+</div>
+
+<div id="items" class="grid"></div>
+
+</div>
+
+<script>
+
+let items=[];
+
+function addItem(){
+
+let item={
+type:document.getElementById('type').value,
+title:document.getElementById('title').value,
+price:document.getElementById('price').value,
+image:document.getElementById('image').value
+}
+
+items.push(item);
+
+render(items);
+
+}
+
+function render(data){
+
+let html='';
+
+data.forEach(item=>{
+
+html+=`
+<div class="card">
+
+<img src="${item.image}">
+
+<div class="card-content">
+
+<h3>${item.title}</h3>
+
+<p>${item.type}</p>
+
+<p class="price">₩ ${item.price}</p>
+
+</div>
+
+</div>
+`;
+
+});
+
+document.getElementById('items').innerHTML=html;
+
+}
+
+function searchItems(keyword){
+
+let filtered=items.filter(item=>
+item.title.includes(keyword)
+);
+
+render(filtered);
+
+}
+
+</script>
+
+</body>
+</html>
