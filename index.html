@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SH Market - 관리자 전용</title>
+    <title>SH Market - 관리자 권한 시스템</title>
     <style>
-        /* 기존 스타일 유지 + 삭제 버튼 스타일 추가 */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
         body { background: #111; color: white; padding-bottom: 50px; }
         header { padding: 40px 20px; text-align: center; background: #1b1b1b; }
@@ -18,22 +17,28 @@
         .card img { width: 100%; height: 200px; object-fit: cover; }
         .card-content { padding: 15px; }
         .del-btn { background: #ff4757; padding: 5px 10px; font-size: 0.8rem; margin-top: 10px; }
+        .admin-box { background: #333; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>📸 SH Market</h1>
-    <p>관리자 전용 마켓 페이지</p>
 </header>
 
 <div class="container">
+    <div class="admin-box">
+        <input type="password" id="adminInput" placeholder="관리자 비밀번호 입력 (48시간 유지)">
+        <button onclick="loginAdmin()" style="background:#2196F3;">관리자 권한 획득</button>
+        <p id="adminStatus" style="margin-top:10px; color:#aaa; font-size:0.9rem;"></p>
+    </div>
+
     <div class="form">
-        <input type="password" id="adminPass" placeholder="관리자 비밀번호를 입력하세요">
         <select id="type"><option>사진</option><option>중고거래</option></select>
         <input id="title" placeholder="제목">
         <input id="price" placeholder="가격">
         <input id="image" placeholder="이미지 URL">
+        <input type="password" id="itemPassword" placeholder="본인확인용 비밀번호">
         <button onclick="addItem()">상품 등록하기</button>
     </div>
 
@@ -41,42 +46,65 @@
 </div>
 
 <script>
-    const ADMIN_PASSWORD = "ghfkddl"; // 여기에 원하는 비밀번호를 설정하세요
+    const ADMIN_PASS = "ghfkddl";
     let items = JSON.parse(localStorage.getItem('shMarketItems')) || [];
-    render(items);
+    
+    // 1. 관리자 권한 확인 함수 (48시간 체크)
+    function isAdmin() {
+        let expiry = localStorage.getItem('adminExpiry');
+        if (expiry && new Date().getTime() < expiry) {
+            return true;
+        }
+        return false;
+    }
 
-    function checkAdmin() {
-        let pass = document.getElementById('adminPass').value;
-        return pass === ADMIN_PASSWORD;
+    function loginAdmin() {
+        if(document.getElementById('adminInput').value === ADMIN_PASS) {
+            let expiry = new Date().getTime() + (48 * 60 * 60 * 1000); // 48시간
+            localStorage.setItem('adminExpiry', expiry);
+            alert("관리자 권한이 48시간 동안 활성화되었습니다.");
+            checkAdminStatus();
+        } else {
+            alert("비밀번호가 틀렸습니다.");
+        }
+    }
+
+    function checkAdminStatus() {
+        document.getElementById('adminStatus').innerText = isAdmin() ? "✅ 관리자 권한 활성화 상태" : "관리자 권한 없음";
     }
 
     function addItem() {
-        if(!checkAdmin()) { alert("비밀번호가 틀렸습니다!"); return; }
+        let title = document.getElementById('title').value;
+        let password = document.getElementById('itemPassword').value;
+        if(!title || !password) { alert("제목과 비밀번호는 필수입니다!"); return; }
 
-        let item = {
-            id: Date.now(), // 삭제를 위한 고유 ID
+        items.push({
+            id: Date.now(),
             type: document.getElementById('type').value,
-            title: document.getElementById('title').value,
+            title: title,
             price: document.getElementById('price').value,
-            image: document.getElementById('image').value || 'https://via.placeholder.com/250'
-        };
-
-        items.push(item);
+            image: document.getElementById('image').value || 'https://via.placeholder.com/250',
+            password: password
+        });
         localStorage.setItem('shMarketItems', JSON.stringify(items));
-        render(items);
+        render();
     }
 
     function deleteItem(id) {
-        if(!checkAdmin()) { alert("비밀번호가 틀렸습니다!"); return; }
-        items = items.filter(item => item.id !== id);
-        localStorage.setItem('shMarketItems', JSON.stringify(items));
-        render(items);
+        let item = items.find(i => i.id === id);
+        
+        // 관리자이거나 비밀번호가 맞으면 삭제
+        if (isAdmin() || prompt("비밀번호를 입력하세요:") === item.password) {
+            items = items.filter(i => i.id !== id);
+            localStorage.setItem('shMarketItems', JSON.stringify(items));
+            render();
+        } else {
+            alert("삭제 권한이 없습니다!");
+        }
     }
 
-    function render(data) {
-        let html = '';
-        data.forEach(item => {
-            html += `
+    function render() {
+        let html = items.map(item => `
             <div class="card">
                 <img src="${item.image}" onerror="this.src='https://via.placeholder.com/250'">
                 <div class="card-content">
@@ -85,10 +113,12 @@
                     <p>₩ ${parseInt(item.price).toLocaleString()}</p>
                     <button class="del-btn" onclick="deleteItem(${item.id})">삭제</button>
                 </div>
-            </div>`;
-        });
+            </div>`).join('');
         document.getElementById('items').innerHTML = html;
+        checkAdminStatus();
     }
+
+    render();
 </script>
 
 </body>
