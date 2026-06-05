@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SH Market - 이미지 검증 완료</title>
+    <title>SH Market - 계좌 거래 시스템</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
         body { background: #111; color: white; padding-bottom: 50px; }
@@ -22,11 +22,13 @@
         input, select { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; background: #333; color: white; }
         button { width: 100%; padding: 15px; margin-top: 15px; background: #4CAF50; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
         .card { background: #1e1e1e; border-radius: 15px; overflow: hidden; transition: 0.3s; }
-        .card img { width: 100%; height: 150px; object-fit: cover; }
-        .card-content { padding: 12px; }
-        .del-btn { background: #ff4757; width: 100%; padding: 8px; margin-top: 10px; border: none; color: white; border-radius: 5px; cursor: pointer; }
+        .card img { width: 100%; height: 160px; object-fit: cover; }
+        .card-content { padding: 15px; }
+        .buy-btn { background: #007bff; width: 100%; padding: 10px; margin-top: 10px; border: none; color: white; border-radius: 5px; cursor: pointer; }
+        .del-btn { background: #ff4757; width: 100%; padding: 8px; margin-top: 5px; border: none; color: white; border-radius: 5px; cursor: pointer; }
+        
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; display: none; z-index: 999; }
     </style>
 </head>
@@ -52,9 +54,10 @@
 
     <div class="form">
         <select id="type"><option>사진</option><option>중고거래</option></select>
-        <input id="title" placeholder="제목">
+        <input id="title" placeholder="상품 제목">
         <input type="number" id="price" placeholder="가격 (숫자만)">
         <input id="image" placeholder="이미지 URL">
+        <input id="account" placeholder="입금받을 계좌번호">
         <input type="password" id="itemPassword" placeholder="삭제용 비밀번호">
         <button onclick="addItem()">상품 등록하기</button>
     </div>
@@ -100,9 +103,10 @@
     function addItem() {
         let title = document.getElementById('title').value;
         let password = document.getElementById('itemPassword').value;
+        let account = document.getElementById('account').value;
         let imageUrl = document.getElementById('image').value || 'https://via.placeholder.com/250';
 
-        if(!title || !password) { showToast("제목과 비밀번호는 필수입니다!"); return; }
+        if(!title || !password || !account) { showToast("제목, 비밀번호, 계좌는 필수입니다!"); return; }
 
         let img = new Image();
         img.onload = function() {
@@ -112,17 +116,17 @@
                 title: title,
                 price: document.getElementById('price').value,
                 image: imageUrl,
+                account: account,
                 password: password
             });
             localStorage.setItem('shMarketItems', JSON.stringify(items));
             showToast("상품이 등록되었습니다!");
             document.getElementById('title').value = '';
             document.getElementById('itemPassword').value = '';
+            document.getElementById('account').value = '';
             render();
         };
-        img.onerror = function() {
-            showToast("이미지 주소가 잘못되었습니다. 다시 확인해주세요!");
-        };
+        img.onerror = function() { showToast("이미지 주소가 잘못되었습니다!"); };
         img.src = imageUrl;
     }
 
@@ -152,12 +156,13 @@
             <div class="card">
                 <img src="${item.image}" onerror="this.src='https://via.placeholder.com/250'">
                 <div class="card-content">
-                    <h3 style="font-size:0.9rem;">${item.title}</h3>
+                    <h3 style="font-size:1rem;">${item.title}</h3>
                     <p style="color:#4CAF50; font-weight:bold;">₩ ${parseInt(item.price).toLocaleString()}</p>
+                    <button class="buy-btn" onclick="alert('판매자 계좌번호:\\n${item.account}\\n\\n이 계좌로 송금 후 판매자에게 문의하세요.')">송금하기</button>
                     <button class="del-btn" onclick="deleteItem(${item.id})">삭제</button>
                 </div>
             </div>`).join('');
-        document.getElementById('items').innerHTML = html || '<p>검색 결과가 없습니다.</p>';
+        document.getElementById('items').innerHTML = html || '<p>등록된 상품이 없습니다.</p>';
     }
 
     render();
