@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SH Market - 관리자 권한 시스템</title>
+    <title>SH Market - 프로 관리자 모드</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
         body { background: #111; color: white; padding-bottom: 50px; }
         header { padding: 30px 20px; text-align: center; background: #1b1b1b; }
         .container { max-width: 1000px; margin: auto; padding: 20px; }
         
-        /* 탭 버튼 스타일 */
+        .search-box { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 8px; border: none; background: #333; color: white; font-size: 1rem; }
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 10px; background: #333; border: none; color: white; border-radius: 8px; cursor: pointer; }
         .tab-btn.active { background: #4CAF50; }
 
-        /* 관리자 박스 */
-        .admin-box { background: #2c3e50; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+        .admin-box { background: #2c3e50; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+        .admin-status { background: #1b5e20; padding: 10px; border-radius: 10px; margin-bottom: 20px; text-align: center; color: #a5d6a7; font-weight: bold; }
         
         .form { background: #1e1e1e; padding: 20px; border-radius: 15px; margin-bottom: 30px; }
         input, select { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; background: #333; color: white; }
@@ -27,7 +27,6 @@
         .card img { width: 100%; height: 150px; object-fit: cover; }
         .card-content { padding: 12px; }
         .del-btn { background: #ff4757; width: 100%; padding: 8px; margin-top: 10px; border: none; color: white; border-radius: 5px; cursor: pointer; }
-        
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; display: none; }
     </style>
 </head>
@@ -36,11 +35,16 @@
 <header><h1>📸 SH Market</h1></header>
 
 <div class="container">
-    <div class="admin-box">
+    <div id="adminLoginArea" class="admin-box">
         <input type="password" id="adminInput" placeholder="관리자 비밀번호 (30분 유지)">
         <button onclick="loginAdmin()" style="background:#2196F3; margin-top:10px;">관리자 권한 획득</button>
-        <p id="adminStatus" style="margin-top:10px; color:#aaa; font-size:0.9rem;"></p>
     </div>
+    
+    <div id="adminStatusArea" class="admin-status" style="display:none;">
+        ✅ 관리자 권한 활성화 중 (30분 유지)
+    </div>
+
+    <input type="text" id="searchInput" class="search-box" placeholder="상품명으로 검색..." onkeyup="render()">
 
     <div class="tabs">
         <button class="tab-btn active" onclick="filterItems('전체', this)">전체</button>
@@ -67,7 +71,6 @@
     let items = JSON.parse(localStorage.getItem('shMarketItems')) || [];
     let currentFilter = '전체';
 
-    // 관리자 권한 확인 (30분: 30 * 60 * 1000)
     function isAdmin() {
         let expiry = localStorage.getItem('adminExpiry');
         return expiry && new Date().getTime() < parseInt(expiry);
@@ -75,12 +78,11 @@
 
     function loginAdmin() {
         if(document.getElementById('adminInput').value === ADMIN_PASS) {
-            let expiry = new Date().getTime() + (30 * 60 * 1000); 
-            localStorage.setItem('adminExpiry', expiry);
-            showToast("관리자 권한이 30분간 활성화되었습니다!");
+            localStorage.setItem('adminExpiry', new Date().getTime() + (30 * 60 * 1000));
+            showToast("관리자 권한 30분 활성화!");
             render();
         } else {
-            showToast("비밀번호가 틀렸습니다.");
+            showToast("비밀번호 오류");
         }
     }
 
@@ -100,7 +102,7 @@
     function addItem() {
         let title = document.getElementById('title').value;
         let password = document.getElementById('itemPassword').value;
-        if(!title || !password) { showToast("제목과 비밀번호는 필수입니다!"); return; }
+        if(!title || !password) { showToast("제목과 비밀번호는 필수!"); return; }
 
         items.push({
             id: Date.now(),
@@ -111,26 +113,33 @@
             password: password
         });
         localStorage.setItem('shMarketItems', JSON.stringify(items));
-        showToast("상품이 등록되었습니다!");
+        showToast("상품 등록 완료!");
         render();
     }
 
     function deleteItem(id) {
         let item = items.find(i => i.id === id);
-        if (isAdmin() || prompt("비밀번호를 입력하세요:") === item.password) {
+        if (isAdmin() || prompt("비밀번호 입력:") === item.password) {
             items = items.filter(i => i.id !== id);
             localStorage.setItem('shMarketItems', JSON.stringify(items));
             showToast("삭제되었습니다.");
             render();
         } else {
-            showToast("권한이 없습니다!");
+            showToast("권한 없음!");
         }
     }
 
     function render() {
-        document.getElementById('adminStatus').innerText = isAdmin() ? "✅ 관리자 권한 활성화 중 (30분 유지)" : "관리자 권한 없음";
-        
-        let filtered = currentFilter === '전체' ? items : items.filter(i => i.type === currentFilter);
+        // 관리자 UI 토글
+        document.getElementById('adminLoginArea').style.display = isAdmin() ? 'none' : 'block';
+        document.getElementById('adminStatusArea').style.display = isAdmin() ? 'block' : 'none';
+
+        let keyword = document.getElementById('searchInput').value.toLowerCase();
+        let filtered = items.filter(i => 
+            (currentFilter === '전체' || i.type === currentFilter) &&
+            (i.title.toLowerCase().includes(keyword))
+        );
+
         let html = filtered.map(item => `
             <div class="card">
                 <img src="${item.image}" onerror="this.src='https://via.placeholder.com/250'">
@@ -140,7 +149,7 @@
                     <button class="del-btn" onclick="deleteItem(${item.id})">삭제</button>
                 </div>
             </div>`).join('');
-        document.getElementById('items').innerHTML = html || '<p>등록된 상품이 없습니다.</p>';
+        document.getElementById('items').innerHTML = html || '<p>검색 결과가 없습니다.</p>';
     }
 
     render();
