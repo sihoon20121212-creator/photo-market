@@ -2,83 +2,94 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>SH Market - 승인제 운영</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SH Market - 관리자 전용</title>
     <style>
-        body { background: #111; color: white; font-family: sans-serif; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
-        .card { background: #222; padding: 15px; border-radius: 10px; }
-        .admin-panel { background: #333; padding: 20px; margin-top: 50px; border-radius: 10px; }
-        button { padding: 10px; cursor: pointer; }
+        /* 기존 스타일 유지 + 삭제 버튼 스타일 추가 */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { background: #111; color: white; padding-bottom: 50px; }
+        header { padding: 40px 20px; text-align: center; background: #1b1b1b; }
+        .container { max-width: 1000px; margin: auto; padding: 20px; }
+        .form { background: #1e1e1e; padding: 20px; border-radius: 15px; margin-bottom: 30px; }
+        input, select { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; background: #333; color: white; }
+        button { width: 100%; padding: 15px; margin-top: 15px; background: #4CAF50; border: none; color: white; border-radius: 8px; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: #1e1e1e; border-radius: 15px; overflow: hidden; position: relative; }
+        .card img { width: 100%; height: 200px; object-fit: cover; }
+        .card-content { padding: 15px; }
+        .del-btn { background: #ff4757; padding: 5px 10px; font-size: 0.8rem; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<h1>📸 SH Market (승인제)</h1>
+<header>
+    <h1>📸 SH Market</h1>
+    <p>관리자 전용 마켓 페이지</p>
+</header>
 
-<!-- 사용자 등록 폼 -->
-<div class="form">
-    <h3>상품 등록 신청</h3>
-    <input id="title" placeholder="제목">
-    <input id="price" placeholder="가격">
-    <input id="image" placeholder="이미지 URL">
-    <button onclick="requestItem()">등록 신청하기</button>
-</div>
+<div class="container">
+    <div class="form">
+        <input type="password" id="adminPass" placeholder="관리자 비밀번호를 입력하세요">
+        <select id="type"><option>사진</option><option>중고거래</option></select>
+        <input id="title" placeholder="제목">
+        <input id="price" placeholder="가격">
+        <input id="image" placeholder="이미지 URL">
+        <button onclick="addItem()">상품 등록하기</button>
+    </div>
 
-<!-- 승인된 상품 목록 -->
-<div id="items" class="grid"></div>
-
-<!-- 운영자 전용 승인 패널 -->
-<div class="admin-panel">
-    <h3>운영자 승인 대기함 (비밀번호 필요)</h3>
-    <input type="password" id="adminPass" placeholder="관리자 비밀번호">
-    <div id="pendingItems"></div>
+    <div id="items" class="grid"></div>
 </div>
 
 <script>
-    const ADMIN_PASS = "ghfkddl"; // 비밀번호
+    const ADMIN_PASSWORD = "ghfkddl"; // 여기에 원하는 비밀번호를 설정하세요
     let items = JSON.parse(localStorage.getItem('shMarketItems')) || [];
+    render(items);
 
-    // 1. 등록 신청 (status: 'pending')
-    function requestItem() {
+    function checkAdmin() {
+        let pass = document.getElementById('adminPass').value;
+        return pass === ADMIN_PASSWORD;
+    }
+
+    function addItem() {
+        if(!checkAdmin()) { alert("비밀번호가 틀렸습니다!"); return; }
+
         let item = {
-            id: Date.now(),
+            id: Date.now(), // 삭제를 위한 고유 ID
+            type: document.getElementById('type').value,
             title: document.getElementById('title').value,
             price: document.getElementById('price').value,
-            image: document.getElementById('image').value,
-            status: 'pending' // 승인 대기 상태
+            image: document.getElementById('image').value || 'https://via.placeholder.com/250'
         };
+
         items.push(item);
-        saveAndRender();
-        alert("등록이 신청되었습니다. 운영자의 승인을 기다려주세요!");
-    }
-
-    // 2. 운영자 승인 함수
-    function approveItem(id) {
-        let pass = document.getElementById('adminPass').value;
-        if(pass !== ADMIN_PASS) { alert("비밀번호 오류"); return; }
-        
-        items = items.map(item => item.id === id ? {...item, status: 'approved'} : item);
-        saveAndRender();
-    }
-
-    function saveAndRender() {
         localStorage.setItem('shMarketItems', JSON.stringify(items));
-        render();
+        render(items);
     }
 
-    function render() {
-        // 일반 목록 (승인된 것만)
-        document.getElementById('items').innerHTML = items
-            .filter(i => i.status === 'approved')
-            .map(i => `<div class="card"><h3>${i.title}</h3><p>₩${i.price}</p></div>`).join('');
-
-        // 운영자 대기 목록
-        document.getElementById('pendingItems').innerHTML = items
-            .filter(i => i.status === 'pending')
-            .map(i => `<div>${i.title} <button onclick="approveItem(${i.id})">승인하기</button></div>`).join('');
+    function deleteItem(id) {
+        if(!checkAdmin()) { alert("비밀번호가 틀렸습니다!"); return; }
+        items = items.filter(item => item.id !== id);
+        localStorage.setItem('shMarketItems', JSON.stringify(items));
+        render(items);
     }
 
-    render();
+    function render(data) {
+        let html = '';
+        data.forEach(item => {
+            html += `
+            <div class="card">
+                <img src="${item.image}" onerror="this.src='https://via.placeholder.com/250'">
+                <div class="card-content">
+                    <h3>${item.title}</h3>
+                    <p>${item.type}</p>
+                    <p>₩ ${parseInt(item.price).toLocaleString()}</p>
+                    <button class="del-btn" onclick="deleteItem(${item.id})">삭제</button>
+                </div>
+            </div>`;
+        });
+        document.getElementById('items').innerHTML = html;
+    }
 </script>
+
 </body>
 </html>
