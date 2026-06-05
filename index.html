@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SH Market - 최적화 버전</title>
+    <title>SH Market - 관리자 권한 시스템</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
         body { background: #111; color: white; padding-bottom: 50px; }
@@ -15,18 +15,19 @@
         .tab-btn { flex: 1; padding: 10px; background: #333; border: none; color: white; border-radius: 8px; cursor: pointer; }
         .tab-btn.active { background: #4CAF50; }
 
+        /* 관리자 박스 */
+        .admin-box { background: #2c3e50; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+        
         .form { background: #1e1e1e; padding: 20px; border-radius: 15px; margin-bottom: 30px; }
         input, select { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; background: #333; color: white; }
         button { width: 100%; padding: 15px; margin-top: 15px; background: #4CAF50; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
         .card { background: #1e1e1e; border-radius: 15px; overflow: hidden; transition: 0.3s; }
-        .card:active { transform: scale(0.98); }
         .card img { width: 100%; height: 150px; object-fit: cover; }
         .card-content { padding: 12px; }
         .del-btn { background: #ff4757; width: 100%; padding: 8px; margin-top: 10px; border: none; color: white; border-radius: 5px; cursor: pointer; }
         
-        /* 토스트 메시지 */
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; display: none; }
     </style>
 </head>
@@ -35,6 +36,12 @@
 <header><h1>📸 SH Market</h1></header>
 
 <div class="container">
+    <div class="admin-box">
+        <input type="password" id="adminInput" placeholder="관리자 비밀번호 (30분 유지)">
+        <button onclick="loginAdmin()" style="background:#2196F3; margin-top:10px;">관리자 권한 획득</button>
+        <p id="adminStatus" style="margin-top:10px; color:#aaa; font-size:0.9rem;"></p>
+    </div>
+
     <div class="tabs">
         <button class="tab-btn active" onclick="filterItems('전체', this)">전체</button>
         <button class="tab-btn" onclick="filterItems('사진', this)">사진</button>
@@ -44,9 +51,9 @@
     <div class="form">
         <select id="type"><option>사진</option><option>중고거래</option></select>
         <input id="title" placeholder="제목">
-        <input type="number" id="price" placeholder="가격 (숫자만 입력)">
+        <input type="number" id="price" placeholder="가격 (숫자만)">
         <input id="image" placeholder="이미지 URL">
-        <input type="password" id="itemPassword" placeholder="본인확인용 비밀번호">
+        <input type="password" id="itemPassword" placeholder="삭제용 비밀번호">
         <button onclick="addItem()">상품 등록하기</button>
     </div>
 
@@ -59,6 +66,23 @@
     const ADMIN_PASS = "ghfkddl";
     let items = JSON.parse(localStorage.getItem('shMarketItems')) || [];
     let currentFilter = '전체';
+
+    // 관리자 권한 확인 (30분: 30 * 60 * 1000)
+    function isAdmin() {
+        let expiry = localStorage.getItem('adminExpiry');
+        return expiry && new Date().getTime() < parseInt(expiry);
+    }
+
+    function loginAdmin() {
+        if(document.getElementById('adminInput').value === ADMIN_PASS) {
+            let expiry = new Date().getTime() + (30 * 60 * 1000); 
+            localStorage.setItem('adminExpiry', expiry);
+            showToast("관리자 권한이 30분간 활성화되었습니다!");
+            render();
+        } else {
+            showToast("비밀번호가 틀렸습니다.");
+        }
+    }
 
     function showToast(msg) {
         let t = document.getElementById('toast');
@@ -93,10 +117,7 @@
 
     function deleteItem(id) {
         let item = items.find(i => i.id === id);
-        let expiry = localStorage.getItem('adminExpiry');
-        let isAdmin = expiry && new Date().getTime() < expiry;
-
-        if (isAdmin || prompt("비밀번호를 입력하세요:") === item.password) {
+        if (isAdmin() || prompt("비밀번호를 입력하세요:") === item.password) {
             items = items.filter(i => i.id !== id);
             localStorage.setItem('shMarketItems', JSON.stringify(items));
             showToast("삭제되었습니다.");
@@ -107,6 +128,8 @@
     }
 
     function render() {
+        document.getElementById('adminStatus').innerText = isAdmin() ? "✅ 관리자 권한 활성화 중 (30분 유지)" : "관리자 권한 없음";
+        
         let filtered = currentFilter === '전체' ? items : items.filter(i => i.type === currentFilter);
         let html = filtered.map(item => `
             <div class="card">
