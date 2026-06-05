@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SH Market - 프로 관리자 모드</title>
+    <title>SH Market - 이미지 검증 완료</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
         body { background: #111; color: white; padding-bottom: 50px; }
@@ -27,7 +27,7 @@
         .card img { width: 100%; height: 150px; object-fit: cover; }
         .card-content { padding: 12px; }
         .del-btn { background: #ff4757; width: 100%; padding: 8px; margin-top: 10px; border: none; color: white; border-radius: 5px; cursor: pointer; }
-        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; display: none; }
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; display: none; z-index: 999; }
     </style>
 </head>
 <body>
@@ -40,9 +40,7 @@
         <button onclick="loginAdmin()" style="background:#2196F3; margin-top:10px;">관리자 권한 획득</button>
     </div>
     
-    <div id="adminStatusArea" class="admin-status" style="display:none;">
-        ✅ 관리자 권한 활성화 중 (30분 유지)
-    </div>
+    <div id="adminStatusArea" class="admin-status" style="display:none;">✅ 관리자 권한 활성화 중 (30분 유지)</div>
 
     <input type="text" id="searchInput" class="search-box" placeholder="상품명으로 검색..." onkeyup="render()">
 
@@ -102,19 +100,30 @@
     function addItem() {
         let title = document.getElementById('title').value;
         let password = document.getElementById('itemPassword').value;
-        if(!title || !password) { showToast("제목과 비밀번호는 필수!"); return; }
+        let imageUrl = document.getElementById('image').value || 'https://via.placeholder.com/250';
 
-        items.push({
-            id: Date.now(),
-            type: document.getElementById('type').value,
-            title: title,
-            price: document.getElementById('price').value,
-            image: document.getElementById('image').value || 'https://via.placeholder.com/250',
-            password: password
-        });
-        localStorage.setItem('shMarketItems', JSON.stringify(items));
-        showToast("상품 등록 완료!");
-        render();
+        if(!title || !password) { showToast("제목과 비밀번호는 필수입니다!"); return; }
+
+        let img = new Image();
+        img.onload = function() {
+            items.push({
+                id: Date.now(),
+                type: document.getElementById('type').value,
+                title: title,
+                price: document.getElementById('price').value,
+                image: imageUrl,
+                password: password
+            });
+            localStorage.setItem('shMarketItems', JSON.stringify(items));
+            showToast("상품이 등록되었습니다!");
+            document.getElementById('title').value = '';
+            document.getElementById('itemPassword').value = '';
+            render();
+        };
+        img.onerror = function() {
+            showToast("이미지 주소가 잘못되었습니다. 다시 확인해주세요!");
+        };
+        img.src = imageUrl;
     }
 
     function deleteItem(id) {
@@ -130,7 +139,6 @@
     }
 
     function render() {
-        // 관리자 UI 토글
         document.getElementById('adminLoginArea').style.display = isAdmin() ? 'none' : 'block';
         document.getElementById('adminStatusArea').style.display = isAdmin() ? 'block' : 'none';
 
