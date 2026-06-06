@@ -31,7 +31,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    db.collection("photos").onSnapshot(snapshot => {
+    // 여기를 "Photos"로 수정했습니다!
+    db.collection("Photos").onSnapshot(snapshot => {
         const gallery = document.getElementById("gallery");
         gallery.innerHTML = "";
         snapshot.forEach(doc => {
@@ -55,13 +56,13 @@
     });
 
     function addLike(id, currentLikes) {
-        db.collection("photos").doc(id).update({ Likes: currentLikes + 1 });
+        db.collection("Photos").doc(id).update({ Likes: currentLikes + 1 });
     }
 
     function addComment(id) {
         const input = document.getElementById('cmt-'+id);
         if(!input.value) return;
-        db.collection("photos").doc(id).update({
+        db.collection("Photos").doc(id).update({
             Comment: firebase.firestore.FieldValue.arrayUnion(input.value)
         });
         input.value = '';
