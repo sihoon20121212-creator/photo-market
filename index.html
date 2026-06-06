@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>SH Gallery - 실시간 스토어</title>
+    <title>SH Gallery</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
@@ -39,12 +39,12 @@
             const id = doc.id;
             gallery.innerHTML += `
                 <div class="card">
-                    <img src="${p.image}" style="width:100%; height:200px; object-fit:cover;">
-                    <h3>${p.title}</h3>
-                    <p>₩ ${p.price}</p>
+                    <img src="${p.Image}" style="width:100%; height:200px; object-fit:cover;">
+                    <h3>${p.Title}</h3>
+                    <p>₩ ${p.Price}</p>
                     <button class="buy-btn" onclick="window.open('https://www.instagram.com/sh.market.1/')">구매 문의</button>
                     <div style="margin-top:10px">
-                        <button onclick="addLike('${id}', ${p.likes})">❤️ ${p.likes}</button>
+                        <button onclick="addLike('${id}', ${p.Likes})">❤️ ${p.Likes}</button>
                         <div style="font-size:0.8rem; margin:5px 0;">${(p.Comment || []).map(c => `<p>• ${c}</p>`).join('')}</div>
                         <input id="cmt-${id}" placeholder="댓글 입력..." style="width:70%">
                         <button onclick="addComment('${id}')">등록</button>
@@ -55,7 +55,7 @@
     });
 
     function addLike(id, currentLikes) {
-        db.collection("photos").doc(id).update({ likes: currentLikes + 1 });
+        db.collection("photos").doc(id).update({ Likes: currentLikes + 1 });
     }
 
     function addComment(id) {
@@ -69,4 +69,3 @@
 </script>
 </body>
 </html>
-
