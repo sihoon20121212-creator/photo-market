@@ -2,67 +2,75 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SH Gallery - 공식 스토어</title>
+    <title>SH Gallery - 실시간 스토어</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; font-family: 'Pretendard', sans-serif; }
         body { background:#111; color:white; }
-        header { padding:50px 20px; text-align:center; background:#181818; }
-        .container { max-width:1000px; margin:auto; padding:20px; }
-        .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:25px; }
-        .card { background:#1e1e1e; border-radius:15px; overflow:hidden; transition: 0.3s; }
-        .card:hover { transform: translateY(-5px); }
-        .card img { width:100%; height:200px; object-fit:cover; }
-        .card-content { padding:15px; }
-        .price { color:#4CAF50; font-weight:bold; font-size: 1.1rem; margin: 10px 0; }
-        .buy-btn { width:100%; padding:12px; background:#2196F3; border:none; border-radius:8px; color:white; cursor:pointer; font-weight:bold; }
-        .buy-btn:hover { background:#1976D2; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:25px; padding:20px; }
+        .card { background:#1e1e1e; border-radius:15px; padding:15px; overflow:hidden; }
+        .card img { width:100%; height:200px; object-fit:cover; margin-bottom: 10px; }
+        .buy-btn { width:100%; padding:10px; background:#2196F3; border:none; border-radius:8px; color:white; cursor:pointer; margin-top:10px; }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>📸 SH Gallery</h1>
-    <p>공식 사진 스토어</p>
-</header>
-
-<div class="container">
-    <div id="gallery" class="grid"></div>
-</div>
+<div id="gallery" class="grid"></div>
 
 <script>
-    /**
-     * [관리자 전용] 
-     * 여기에 사진 정보를 추가하세요. 
-     * 형식: { title: "민들레 홀씨", price: 500, image: "1780575171750.jpg" },
-     */
-    const photos = [{ title: "민들레 홀씨", price: 500, image: "1780575171750.jpg" },
-        { title: "노을진 바다", price: 5000, image: "https://picsum.photos/600/400?1" },
-        { title: "숲속 사슴", price: 7000, image: "https://picsum.photos/600/400?2" },
-        { title: "도심 야경", price: 10000, image: "https://picsum.photos/600/400?3" }
-    ];
+    // 관리자님이 제공해주신 설정값 적용
+    const firebaseConfig = {
+        apiKey: "AIzaSyBL1R4PV4ZQum_i8HHhdaama4Va4DrAHyA",
+        authDomain: "sh-gallery-c84d2.firebaseapp.com",
+        projectId: "sh-gallery-c84d2",
+        storageBucket: "sh-gallery-c84d2.firebasestorage.app",
+        messagingSenderId: "1082517064048",
+        appId: "1:1082517064048:web:18e97377dea38899c2e7b5",
+        measurementId: "G-NM0VP2JQTT"
+    };
 
-    function purchase(title) {
-        // 인스타그램으로 연결
-        window.open("https://www.instagram.com/sh.market.1/");
-        alert(`"${title}" 구매 문의를 위해 인스타그램으로 이동합니다.\nDM으로 문의 내용을 보내주세요!`);
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    function render() {
+    // 데이터 가져오기 및 실시간 반영
+    db.collection("photos").onSnapshot(snapshot => {
         const gallery = document.getElementById("gallery");
-        gallery.innerHTML = photos.map(p => `
-            <div class="card">
-                <img src="${p.image}" alt="${p.title}">
-                <div class="card-content">
+        gallery.innerHTML = "";
+        snapshot.forEach(doc => {
+            const p = doc.data();
+            const id = doc.id;
+            gallery.innerHTML += `
+                <div class="card">
+                    <img src="${p.image}" oncontextmenu="return false;">
                     <h3>${p.title}</h3>
-                    <p class="price">₩ ${p.price.toLocaleString()}</p>
-                    <button class="buy-btn" onclick="purchase('${p.title}')">구매 문의하기</button>
+                    <p>₩ ${p.price.toLocaleString()}</p>
+                    <button class="buy-btn" onclick="window.open('https://www.instagram.com/sh.market.1/')">구매 문의</button>
+                    <div style="margin-top:10px">
+                        <button onclick="addLike('${id}', ${p.likes})">❤️ ${p.likes}</button>
+                        <div style="font-size:0.8rem; margin:5px 0;">${(p.comments || []).map(c => `<p>• ${c}</p>`).join('')}</div>
+                        <input id="cmt-${id}" placeholder="댓글 입력..." style="width:70%">
+                        <button onclick="addComment('${id}')">등록</button>
+                    </div>
                 </div>
-            </div>
-        `).join("");
+            `;
+        });
+    });
+
+    // 좋아요 기능
+    function addLike(id, currentLikes) {
+        db.collection("photos").doc(id).update({ likes: currentLikes + 1 });
     }
 
-    render();
+    // 댓글 기능
+    function addComment(id) {
+        const input = document.getElementById('cmt-'+id);
+        if(!input.value) return;
+        db.collection("photos").doc(id).update({
+            comments: firebase.firestore.FieldValue.arrayUnion(input.value)
+        });
+        input.value = '';
+    }
 </script>
 </body>
 </html>
