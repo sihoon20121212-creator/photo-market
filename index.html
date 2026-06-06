@@ -8,8 +8,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         body { background: #111; color: white; font-family: sans-serif; padding: 20px; }
-        .card { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        img { width: 100%; border-radius: 5px; margin-bottom: 10px; }
+        .card { background: #222; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
+        img { width: 100%; border-radius: 10px; margin-bottom: 15px; }
+        h3 { margin: 0 0 10px 0; }
+        p { margin: 0; color: #ccc; }
     </style>
 </head>
 <body>
@@ -30,24 +32,19 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 데이터베이스의 소문자 필드명에 맞춘 코드
+    // 데이터 가져오기 (소문자 photos 컬렉션)
     db.collection("photos").onSnapshot(snapshot => {
         const gallery = document.getElementById("gallery");
         gallery.innerHTML = ""; 
         
-        if (snapshot.empty) {
-            gallery.innerHTML = "저장된 데이터가 없습니다.";
-            return;
-        }
-
         snapshot.forEach(doc => {
             const p = doc.data();
+            // 이미지, 제목, 가격만 표시
             gallery.innerHTML += `
                 <div class="card">
-                    <img src="${p.image || ''}">
-                    <h3>${p.title || '제목없음'}</h3>
-                    <p>가격: ${p.price || 0}원</p>
-                    <p>좋아요: ${p.likes || 0}</p>
+                    <img src="${p.image}">
+                    <h3>${p.title}</h3>
+                    <p>가격: ${p.price}원</p>
                 </div>
             `;
         });
