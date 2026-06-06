@@ -3,103 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SH Gallery - 사진 등록 버전</title>
+    <title>SH Gallery - 공식 스토어</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Pretendard', sans-serif; }
         body { background:#111; color:white; }
         header { padding:50px 20px; text-align:center; background:#181818; }
-        .container { max-width:1200px; margin:auto; padding:20px; }
-        .intro { background:#1e1e1e; padding:20px; border-radius:15px; margin-bottom:20px; }
-        .search { width:100%; padding:15px; border:none; border-radius:10px; background:#222; color:white; margin-bottom:20px; }
-        .tabs { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
-        .tab { padding:10px 15px; background:#222; border:none; border-radius:10px; color:white; cursor:pointer; }
-        .tab.active { background:#4CAF50; }
-        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:20px; }
-        .card { background:#1e1e1e; border-radius:15px; overflow:hidden; }
-        .card img { width:100%; height:220px; object-fit:cover; }
+        .container { max-width:1000px; margin:auto; padding:20px; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:25px; }
+        .card { background:#1e1e1e; border-radius:15px; overflow:hidden; transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); }
+        .card img { width:100%; height:200px; object-fit:cover; }
         .card-content { padding:15px; }
-        .price { color:#4CAF50; font-weight:bold; margin-top:10px; }
-        .buy-btn { width:100%; padding:12px; margin-top:15px; background:#2196F3; border:none; border-radius:10px; color:white; cursor:pointer; }
+        .price { color:#4CAF50; font-weight:bold; font-size: 1.1rem; margin: 10px 0; }
+        .buy-btn { width:100%; padding:12px; background:#2196F3; border:none; border-radius:8px; color:white; cursor:pointer; font-weight:bold; }
+        .buy-btn:hover { background:#1976D2; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>📸 SH Gallery</h1>
-    <p>자연과 순간을 담은 사진 갤러리</p>
+    <p>공식 사진 스토어</p>
 </header>
 
 <div class="container">
-    <div class="intro">
-        <h2>📷 직접 찍은 사진 등록</h2>
-        <input id="newTitle" placeholder="사진 제목" style="width:100%; padding:10px; margin:5px 0; background:#333; border:none; color:white;">
-        <input id="newCategory" placeholder="카테고리 (풍경, 동물, 도시, 야경)" style="width:100%; padding:10px; margin:5px 0; background:#333; border:none; color:white;">
-        <input id="newPrice" type="number" placeholder="가격" style="width:100%; padding:10px; margin:5px 0; background:#333; border:none; color:white;">
-        <input id="newImage" placeholder="이미지 직접 링크 (ImgBB 등에서 복사)" style="width:100%; padding:10px; margin:5px 0; background:#333; border:none; color:white;">
-        <button class="buy-btn" onclick="addPhoto()" style="background:#4CAF50;">등록하기</button>
-    </div>
-
-    <input class="search" id="search" placeholder="사진 검색..." onkeyup="render()">
-
-    <div class="tabs">
-        <button class="tab active" onclick="setFilter('전체',this)">전체</button>
-        <button class="tab" onclick="setFilter('풍경',this)">풍경</button>
-        <button class="tab" onclick="setFilter('동물',this)">동물</button>
-        <button class="tab" onclick="setFilter('도시',this)">도시</button>
-        <button class="tab" onclick="setFilter('야경',this)">야경</button>
-    </div>
-
     <div id="gallery" class="grid"></div>
 </div>
 
 <script>
-    let currentFilter = "전체";
-    let photos = [
-        { title:"노을진 바다", category:"풍경", price:5000, image:"https://picsum.photos/600/400?1" },
-        { title:"숲속 사슴", category:"동물", price:7000, image:"https://picsum.photos/600/400?2" }
+    // [관리자 전용] 여기에만 사진을 추가하세요!
+    const photos = [{ title: "민들레 홀씨", price: 500, image: "1780575171750.jpg" },
+        { title: "", price: , image: "" },
+        { title: "", price: , image: "" },
+        { title: "", price: , image: "" }
     ];
 
-    function addPhoto() {
-        const title = document.getElementById('newTitle').value;
-        const category = document.getElementById('newCategory').value;
-        const price = parseInt(document.getElementById('newPrice').value);
-        const image = document.getElementById('newImage').value;
-
-        if(!title || !image) { alert("제목과 이미지 주소는 필수입니다!"); return; }
-
-        photos.push({ title, category, price, image });
-        render();
-        alert("사진이 등록되었습니다!");
-    }
-
-    function setFilter(filter, btn) {
-        currentFilter = filter;
-        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-        btn.classList.add("active");
-        render();
-    }
-
     function purchase(title) {
-        navigator.clipboard.writeText(`안녕하세요. "${title}" 사진 구매 문의드립니다.`);
+        // 인스타그램으로 연결
         window.open("https://www.instagram.com/sh.market.1/");
-        alert("문의 문구가 복사되었습니다! 인스타 DM으로 붙여넣어 주세요.");
+        alert(`"${title}" 구매 문의를 위해 인스타그램으로 이동합니다.\nDM으로 문의 내용을 보내주세요!`);
     }
 
     function render() {
-        const keyword = document.getElementById("search").value.toLowerCase();
-        const filtered = photos.filter(p => 
-            (currentFilter === "전체" || p.category === currentFilter) &&
-            p.title.toLowerCase().includes(keyword)
-        );
-
-        document.getElementById("gallery").innerHTML = filtered.map(p => `
+        document.getElementById("gallery").innerHTML = photos.map(p => `
             <div class="card">
-                <img src="${p.image}">
+                <img src="${p.image}" alt="${p.title}">
                 <div class="card-content">
                     <h3>${p.title}</h3>
-                    <p>${p.category}</p>
                     <p class="price">₩ ${p.price.toLocaleString()}</p>
-                    <button class="buy-btn" onclick="purchase('${p.title}')">구매 문의</button>
+                    <button class="buy-btn" onclick="purchase('${p.title}')">구매 문의하기</button>
                 </div>
             </div>
         `).join("");
