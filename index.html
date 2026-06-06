@@ -1,266 +1,286 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SH Market - 계좌 거래 시스템</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
-        body { background: #111; color: white; padding-bottom: 50px; }
-        header { padding: 30px 20px; text-align: center; background: #1b1b1b; }
-        .container { max-width: 1000px; margin: auto; padding: 20px; }
-        
-        .search-box { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 8px; border: none; background: #333; color: white; font-size: 1rem; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px; background: #333; border: none; color: white; border-radius: 8px; cursor: pointer; }
-        .tab-btn.active { background: #4CAF50; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        .admin-box { background: #2c3e50; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
-        .admin-status { background: #1b5e20; padding: 10px; border-radius: 10px; margin-bottom: 20px; text-align: center; color: #a5d6a7; font-weight: bold; }
-        
-        .form { background: #1e1e1e; padding: 20px; border-radius: 15px; margin-bottom: 30px; }
-        input, select { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; background: #333; color: white; }
-        button { width: 100%; padding: 15px; margin-top: 15px; background: #4CAF50; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-        .card { background: #1e1e1e; border-radius: 15px; overflow: hidden; transition: 0.3s; }
-        .card img { width: 100%; height: 160px; object-fit: cover; }
-        .card-content { padding: 15px; }
-        .buy-btn { background: #007bff; width: 100%; padding: 10px; margin-top: 10px; border: none; color: white; border-radius: 5px; cursor: pointer; }
-        .del-btn { background: #ff4757; width: 100%; padding: 8px; margin-top: 5px; border: none; color: white; border-radius: 5px; cursor: pointer; }
-        
-        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; display: none; z-index: 999; }
-    </style>
+<title>SH Gallery</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:sans-serif;
+}
+
+body{
+background:#111;
+color:white;
+}
+
+header{
+padding:50px 20px;
+text-align:center;
+background:#181818;
+}
+
+header h1{
+font-size:2.2rem;
+}
+
+header p{
+margin-top:10px;
+color:#aaa;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+padding:20px;
+}
+
+.intro{
+background:#1e1e1e;
+padding:20px;
+border-radius:15px;
+margin-bottom:25px;
+}
+
+.search{
+width:100%;
+padding:15px;
+border:none;
+border-radius:10px;
+background:#222;
+color:white;
+margin-bottom:20px;
+}
+
+.tabs{
+display:flex;
+gap:10px;
+margin-bottom:20px;
+flex-wrap:wrap;
+}
+
+.tab{
+padding:10px 15px;
+background:#222;
+border:none;
+border-radius:10px;
+color:white;
+cursor:pointer;
+}
+
+.tab.active{
+background:#4CAF50;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+gap:20px;
+}
+
+.card{
+background:#1e1e1e;
+border-radius:15px;
+overflow:hidden;
+transition:.3s;
+}
+
+.card:hover{
+transform:translateY(-5px);
+}
+
+.card img{
+width:100%;
+height:200px;
+object-fit:cover;
+}
+
+.card-content{
+padding:15px;
+}
+
+.price{
+color:#4CAF50;
+font-weight:bold;
+margin-top:10px;
+font-size:1.1rem;
+}
+
+.buy-btn{
+width:100%;
+padding:12px;
+margin-top:15px;
+background:#2196F3;
+border:none;
+border-radius:10px;
+color:white;
+cursor:pointer;
+}
+
+footer{
+text-align:center;
+padding:40px;
+color:#777;
+}
+
+</style>
 </head>
+
 <body>
 
-<header><h1>📸 SH Market</h1></header>
+<header>
+<h1>📸 SH Gallery</h1>
+<p>자연과 순간을 담은 사진 갤러리</p>
+</header>
 
 <div class="container">
-    <div id="adminLoginArea" class="admin-box">
-        <input type="password" id="adminInput" placeholder="관리자 비밀번호 (30분 유지)">
-        <button onclick="loginAdmin()" style="background:#2196F3; margin-top:10px;">관리자 권한 획득</button>
-    </div>
-    
-    <div id="adminStatusArea" class="admin-status" style="display:none;">✅ 관리자 권한 활성화 중 (30분 유지)</div>
 
-    <input type="text" id="searchInput" class="search-box" placeholder="상품명으로 검색..." onkeyup="render()">
-
-    <div class="tabs">
-        <button class="tab-btn active" onclick="filterItems('전체', this)">전체</button>
-        <button class="tab-btn" onclick="filterItems('사진', this)">사진</button>
-        <button class="tab-btn" onclick="filterItems('중고거래', this)">중고거래</button>
-    </div>
-
-    <div class="form">
-        <select id="type"><option>사진</option><option>중고거래</option></select>
-        <input id="title" placeholder="상품 제목">
-        <input type="number" id="price" placeholder="가격 (숫자만)">
-        <input id="image" placeholder="이미지 URL">
-        <input id="account" placeholder="입금받을 계좌번호">
-        <input type="password" id="itemPassword" placeholder="삭제용 비밀번호">
-        <button onclick="addItem()">상품 등록하기</button>
-    </div>
-
-    <div id="items" class="grid"></div>
+<div class="intro">
+<h2>📷 작가 소개</h2>
+<p style="margin-top:10px;">
+안녕하세요. SH Gallery 운영자입니다.
+풍경, 동물, 도시의 아름다운 순간을 기록합니다.
+</p>
 </div>
 
-<div id="toast">알림 메시지</div>
+<input
+class="search"
+id="search"
+placeholder="사진 검색..."
+onkeyup="render()"
+>
+
+<div class="tabs">
+<button class="tab active" onclick="setFilter('전체',this)">전체</button>
+<button class="tab" onclick="setFilter('풍경',this)">풍경</button>
+<button class="tab" onclick="setFilter('동물',this)">동물</button>
+<button class="tab" onclick="setFilter('도시',this)">도시</button>
+<button class="tab" onclick="setFilter('야경',this)">야경</button>
+</div>
+
+<div id="gallery" class="grid"></div>
+
+</div>
+
+<footer>
+© 2026 SH Gallery
+<br>
+Landscape Photography Collection
+</footer>
 
 <script>
-    const ADMIN_PASS = "ghfkddl";
-    let items = JSON.parse(localStorage.getItem('shMarketItems')) || [];
-    let currentFilter = '전체';
 
-    function isAdmin() {
-        let expiry = localStorage.getItem('adminExpiry');
-        return expiry && new Date().getTime() < parseInt(expiry);
-    }
+let currentFilter="전체";
 
-    function loginAdmin() {
-        if(document.getElementById('adminInput').value === ADMIN_PASS) {
-            localStorage.setItem('adminExpiry', new Date().getTime() + (30 * 60 * 1000));
-            showToast("관리자 권한 30분 활성화!");
-            render();
-        } else {
-            showToast("비밀번호 오류");
-        }
-    }
+const photos=[
 
-    function showToast(msg) {
-        let t = document.getElementById('toast');
-        t.innerText = msg; t.style.display = 'block';
-        setTimeout(() => t.style.display = 'none', 2000);
-    }
+{
+title:"노을진 바다",
+category:"풍경",
+price:5000,
+image:"https://picsum.photos/600/400?1"
+},
 
-    function filterItems(type, btn) {
-        currentFilter = type;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        render();
-    }
+{
+title:"숲속 사슴",
+category:"동물",
+price:7000,
+image:"https://picsum.photos/600/400?2"
+},
 
-    function addItem() {
-        let title = document.getElementById('title').value;
-        let password = document.getElementById('itemPassword').value;
-        let account = document.getElementById('account').value;
-        let imageUrl = document.getElementById('image').value || 'https://via.placeholder.com/250';
+{
+title:"도심 야경",
+category:"야경",
+price:10000,
+image:"https://picsum.photos/600/400?3"
+},
 
-        if(!title || !password || !account) { showToast("제목, 비밀번호, 계좌는 필수입니다!"); return; }
+{
+title:"서울 거리",
+category:"도시",
+price:8000,
+image:"https://picsum.photos/600/400?4"
+}
 
-        let img = new Image();
-        img.onload = function() {
-            items.push({
-                id: Date.now(),
-                type: document.getElementById('type').value,
-                title: title,
-                price: document.getElementById('price').value,
-                image: imageUrl,
-                account: account,
-                password: password
-            });
-            localStorage.setItem('shMarketItems', JSON.stringify(items));
-            showToast("상품이 등록되었습니다!");
-            document.getElementById('title').value = '';
-            document.getElementById('itemPassword').value = '';
-            document.getElementById('account').value = '';
-            render();
-        };
-        img.onerror = function() { showToast("이미지 주소가 잘못되었습니다!"); };
-        img.src = imageUrl;
-    }
+];
 
-    function deleteItem(id) {
-        let item = items.find(i => i.id === id);
-        if (isAdmin() || prompt("비밀번호 입력:") === item.password) {
-            items = items.filter(i => i.id !== id);
-            localStorage.setItem('shMarketItems', JSON.stringify(items));
-            showToast("삭제되었습니다.");
-            render();
-        } else {
-            showToast("권한 없음!");
-        }
-    }
+function setFilter(filter,btn){
 
-    function render() {
-        document.getElementById('adminLoginArea').style.display = isAdmin() ? 'none' : 'block';
-        document.getElementById('adminStatusArea').style.display = isAdmin() ? 'block' : 'none';
+currentFilter=filter;
 
-        let keyword = document.getElementById('searchInput').value.toLowerCase();
-        let filtered = items.filter(i => 
-            (currentFilter === '전체' || i.type === currentFilter) &&
-            (i.title.toLowerCase().includes(keyword))
-        );
+document
+.querySelectorAll(".tab")
+.forEach(t=>t.classList.remove("active"));
 
-        let html = filtered.map(item => `
-            <div class="card">
-                <img src="${item.image}" onerror="this.src='https://via.placeholder.com/250'">
-                <div class="card-content">
-                    <h3 style="font-size:1rem;">${item.title}</h3>
-                    <p style="color:#4CAF50; font-weight:bold;">₩ ${parseInt(item.price).toLocaleString()}</p>
-                    <button class="buy-btn" onclick="alert('판매자 계좌번호:\\n${item.account}\\n\\n이 계좌로 송금 후 판매자에게 문의하세요.')">송금하기</button>
-                    <button class="del-btn" onclick="deleteItem(${item.id})">삭제</button>
-                </div>
-            </div>`).join('');
-        document.getElementById('items').innerHTML = html || '<p>등록된 상품이 없습니다.</p>';
-    }
+btn.classList.add("active");
 
-    render();
-<script type="module">
+render();
+}
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+function render(){
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA1v-14zdva-uyVYrmFAT48U54BqLeLACo",
-  authDomain: "sh-market-e072c.firebaseapp.com",
-  projectId: "sh-market-e072c",
-  storageBucket: "sh-market-e072c.firebasestorage.app",
-  messagingSenderId: "798867039603",
-  appId: "1:798867039603:web:bb224f447eef0395ebd106",
-  measurementId: "G-065SSP840Q"
-};
+const keyword=
+document
+.getElementById("search")
+.value
+.toLowerCase();
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const filtered=
+photos.filter(p=>
 
-window.addItem = async function() {
+(currentFilter==="전체" ||
+p.category===currentFilter)
 
-  const title = document.getElementById('title').value;
-  const price = document.getElementById('price').value;
-  const image = document.getElementById('image').value;
-  const account = document.getElementById('account').value;
-  const type = document.getElementById('type').value;
+&&
 
-  if(!title || !account){
-    alert("제목과 계좌번호를 입력하세요.");
-    return;
-  }
+p.title
+.toLowerCase()
+.includes(keyword)
 
-  await addDoc(collection(db, "photos"), {
-    title,
-    price,
-    image,
-    account,
-    type,
-    createdAt: Date.now()
-  });
+);
 
-  alert("등록 완료!");
-  loadItems();
-};
+document.getElementById("gallery").innerHTML=
 
-window.loadItems = async function() {
+filtered.map(photo=>`
 
-  const snapshot = await getDocs(collection(db, "photos"));
+<div class="card">
 
-  let html = "";
+<img src="${photo.image}">
 
-  snapshot.forEach((docSnap) => {
+<div class="card-content">
 
-    const item = docSnap.data();
+<h3>${photo.title}</h3>
 
-    html += `
-      <div class="card">
-        <img src="${item.image}">
-        <div class="card-content">
-          <h3>${item.title}</h3>
-          <p>₩ ${Number(item.price).toLocaleString()}</p>
+<p>${photo.category}</p>
 
-          <button class="buy-btn"
-          onclick="alert('계좌번호 : ${item.account}')">
-          구매하기
-          </button>
+<p class="price">
+₩ ${photo.price.toLocaleString()}
+</p>
 
-          <button class="del-btn"
-          onclick="deleteItem('${docSnap.id}')">
-          삭제
-          </button>
-        </div>
-      </div>
-    `;
-  });
+<button
+class="buy-btn"
+onclick="alert('구매 문의는 추후 추가 예정입니다.')"
+>
+구매 문의
+</button>
 
-  document.getElementById("items").innerHTML = html;
-};
+</div>
 
-window.deleteItem = async function(id){
+</div>
 
-  await deleteDoc(doc(db, "photos", id));
+`).join("");
 
-  alert("삭제 완료");
-  loadItems();
-};
+}
 
-loadItems();
+render();
 
 </script>
+
 </body>
 </html>
