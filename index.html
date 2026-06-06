@@ -1,304 +1,111 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SH Gallery</title>
-
-<style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:sans-serif;
-}
-
-body{
-background:#111;
-color:white;
-}
-
-header{
-padding:50px 20px;
-text-align:center;
-background:#181818;
-}
-
-.container{
-max-width:1200px;
-margin:auto;
-padding:20px;
-}
-
-.intro{
-background:#1e1e1e;
-padding:20px;
-border-radius:15px;
-margin-bottom:20px;
-}
-
-.search{
-width:100%;
-padding:15px;
-border:none;
-border-radius:10px;
-background:#222;
-color:white;
-margin-bottom:20px;
-}
-
-.tabs{
-display:flex;
-gap:10px;
-margin-bottom:20px;
-flex-wrap:wrap;
-}
-
-.tab{
-padding:10px 15px;
-background:#222;
-border:none;
-border-radius:10px;
-color:white;
-cursor:pointer;
-}
-
-.tab.active{
-background:#4CAF50;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
-gap:20px;
-}
-
-.card{
-background:#1e1e1e;
-border-radius:15px;
-overflow:hidden;
-}
-
-.card img{
-width:100%;
-height:220px;
-object-fit:cover;
-}
-
-.card-content{
-padding:15px;
-}
-
-.price{
-color:#4CAF50;
-font-weight:bold;
-margin-top:10px;
-}
-
-.buy-btn{
-width:100%;
-padding:12px;
-margin-top:15px;
-background:#2196F3;
-border:none;
-border-radius:10px;
-color:white;
-cursor:pointer;
-}
-
-footer{
-text-align:center;
-padding:40px;
-color:#777;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SH Gallery - 사진 등록 버전</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; }
+        body { background:#111; color:white; }
+        header { padding:50px 20px; text-align:center; background:#181818; }
+        .container { max-width:1200px; margin:auto; padding:20px; }
+        .intro { background:#1e1e1e; padding:20px; border-radius:15px; margin-bottom:20px; }
+        .search { width:100%; padding:15px; border:none; border-radius:10px; background:#222; color:white; margin-bottom:20px; }
+        .tabs { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+        .tab { padding:10px 15px; background:#222; border:none; border-radius:10px; color:white; cursor:pointer; }
+        .tab.active { background:#4CAF50; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:20px; }
+        .card { background:#1e1e1e; border-radius:15px; overflow:hidden; }
+        .card img { width:100%; height:220px; object-fit:cover; }
+        .card-content { padding:15px; }
+        .price { color:#4CAF50; font-weight:bold; margin-top:10px; }
+        .buy-btn { width:100%; padding:12px; margin-top:15px; background:#2196F3; border:none; border-radius:10px; color:white; cursor:pointer; }
+    </style>
 </head>
-
 <body>
 
 <header>
-<h1>📸 SH Gallery</h1>
-<p>자연과 순간을 담은 사진 갤러리</p>
+    <h1>📸 SH Gallery</h1>
+    <p>자연과 순간을 담은 사진 갤러리</p>
 </header>
 
 <div class="container">
+    <div class="intro">
+        <h2>📷 직접 찍은 사진 등록</h2>
+        <input id="newTitle" placeholder="사진 제목" style="width:100%; padding:10px; margin:5px 0; background:#333; border:none; color:white;">
+        <input id="newCategory" placeholder="카테고리 (풍경, 동물, 도시, 야경)" style="width:100%; padding:10px; margin:5px 0; background:#333; border:none; color:white;">
+        <input id="newPrice" type="number" placeholder="가격" style="width:100%; padding:10px; margin:5px 0; background:#333; border:none; color:white;">
+        <input id="newImage" placeholder="이미지 직접 링크 (ImgBB 등에서 복사)" style="width:100%; padding:10px; margin:5px 0; background:#333; border:none; color:white;">
+        <button class="buy-btn" onclick="addPhoto()" style="background:#4CAF50;">등록하기</button>
+    </div>
 
-<div class="intro">
-<h2>📷 작가 소개</h2>
-<p style="margin-top:10px;">
-안녕하세요. SH Gallery 운영자입니다.
-<br><br>
-구매 문의 : Instagram @sh.market.1
-</p>
+    <input class="search" id="search" placeholder="사진 검색..." onkeyup="render()">
+
+    <div class="tabs">
+        <button class="tab active" onclick="setFilter('전체',this)">전체</button>
+        <button class="tab" onclick="setFilter('풍경',this)">풍경</button>
+        <button class="tab" onclick="setFilter('동물',this)">동물</button>
+        <button class="tab" onclick="setFilter('도시',this)">도시</button>
+        <button class="tab" onclick="setFilter('야경',this)">야경</button>
+    </div>
+
+    <div id="gallery" class="grid"></div>
 </div>
-
-<input
-class="search"
-id="search"
-placeholder="사진 검색..."
-onkeyup="render()"
->
-
-<div class="tabs">
-<button class="tab active" onclick="setFilter('전체',this)">전체</button>
-<button class="tab" onclick="setFilter('풍경',this)">풍경</button>
-<button class="tab" onclick="setFilter('동물',this)">동물</button>
-<button class="tab" onclick="setFilter('도시',this)">도시</button>
-<button class="tab" onclick="setFilter('야경',this)">야경</button>
-</div>
-
-<div id="gallery" class="grid"></div>
-
-</div>
-
-<footer>
-© 2026 SH Gallery
-</footer>
 
 <script>
+    let currentFilter = "전체";
+    let photos = [
+        { title:"노을진 바다", category:"풍경", price:5000, image:"https://picsum.photos/600/400?1" },
+        { title:"숲속 사슴", category:"동물", price:7000, image:"https://picsum.photos/600/400?2" }
+    ];
 
-let currentFilter="전체";
+    function addPhoto() {
+        const title = document.getElementById('newTitle').value;
+        const category = document.getElementById('newCategory').value;
+        const price = parseInt(document.getElementById('newPrice').value);
+        const image = document.getElementById('newImage').value;
 
-const photos=[1780575171750.jpg
+        if(!title || !image) { alert("제목과 이미지 주소는 필수입니다!"); return; }
 
-{
-title:"꽃",
-category:"식물",
-price:1000,
-const photos=[1780575171750.jpg
+        photos.push({ title, category, price, image });
+        render();
+        alert("사진이 등록되었습니다!");
+    }
 
-{
-title:"노을진 바다",
-category:"풍경",
-price:5000,
-image:"images/sunset.jpg"
-},
+    function setFilter(filter, btn) {
+        currentFilter = filter;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+        render();
+    }
 
-{
-title:"숲속 사슴",
-category:"동물",
-price:7000,
-image:"images/deer.jpg"
-},
+    function purchase(title) {
+        navigator.clipboard.writeText(`안녕하세요. "${title}" 사진 구매 문의드립니다.`);
+        window.open("https://www.instagram.com/sh.market.1/");
+        alert("문의 문구가 복사되었습니다! 인스타 DM으로 붙여넣어 주세요.");
+    }
 
-{
-title:"푸른 바다",
-category:"풍경",
-price:6000,
-image:"images/ocean.jpg"
-}
+    function render() {
+        const keyword = document.getElementById("search").value.toLowerCase();
+        const filtered = photos.filter(p => 
+            (currentFilter === "전체" || p.category === currentFilter) &&
+            p.title.toLowerCase().includes(keyword)
+        );
 
-];
-},
+        document.getElementById("gallery").innerHTML = filtered.map(p => `
+            <div class="card">
+                <img src="${p.image}">
+                <div class="card-content">
+                    <h3>${p.title}</h3>
+                    <p>${p.category}</p>
+                    <p class="price">₩ ${p.price.toLocaleString()}</p>
+                    <button class="buy-btn" onclick="purchase('${p.title}')">구매 문의</button>
+                </div>
+            </div>
+        `).join("");
+    }
 
-{
-title:"숲속 사슴",
-category:"동물",
-price:7000,
-image:"https://picsum.photos/600/400?2"
-},
-
-{
-title:"도심 야경",
-category:"야경",
-price:10000,
-image:"https://picsum.photos/600/400?3"
-},
-
-{
-title:"서울 거리",
-category:"도시",
-price:8000,
-image:"https://picsum.photos/600/400?4"
-}
-
-];
-
-function setFilter(filter,btn){
-
-currentFilter=filter;
-
-document
-.querySelectorAll(".tab")
-.forEach(t=>t.classList.remove("active"));
-
-btn.classList.add("active");
-
-render();
-
-}
-
-function purchase(title){
-
-navigator.clipboard.writeText(
-`안녕하세요. "${title}" 사진 구매 문의드립니다.`
-);
-
-window.open(
-"https://www.instagram.com/sh.market.1/"
-);
-
-alert(
-"문의 문구가 복사되었습니다!\n인스타 DM으로 붙여넣어 보내주세요."
-);
-
-}
-
-function render(){
-
-const keyword=
-document
-.getElementById("search")
-.value
-.toLowerCase();
-
-const filtered=
-photos.filter(photo=>
-
-(currentFilter==="전체" ||
-photo.category===currentFilter)
-
-&&
-
-photo.title.toLowerCase().includes(keyword)
-
-);
-
-document.getElementById("gallery").innerHTML=
-
-filtered.map(photo=>`
-
-<div class="card">
-
-<img src="${photo.image}">
-
-<div class="card-content">
-
-<h3>${photo.title}</h3>
-
-<p>${photo.category}</p>
-
-<p class="price">
-₩ ${photo.price.toLocaleString()}
-</p>
-
-<button
-class="buy-btn"
-onclick="purchase('${photo.title}')">
-구매 문의
-</button>
-
-</div>
-
-</div>
-
-`).join("");
-
-}
-
-render();
-
+    render();
 </script>
-
 </body>
 </html>
