@@ -166,6 +166,101 @@
     }
 
     render();
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA1v-14zdva-uyVYrmFAT48U54BqLeLACo",
+  authDomain: "sh-market-e072c.firebaseapp.com",
+  projectId: "sh-market-e072c",
+  storageBucket: "sh-market-e072c.firebasestorage.app",
+  messagingSenderId: "798867039603",
+  appId: "1:798867039603:web:bb224f447eef0395ebd106",
+  measurementId: "G-065SSP840Q"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.addItem = async function() {
+
+  const title = document.getElementById('title').value;
+  const price = document.getElementById('price').value;
+  const image = document.getElementById('image').value;
+  const account = document.getElementById('account').value;
+  const type = document.getElementById('type').value;
+
+  if(!title || !account){
+    alert("제목과 계좌번호를 입력하세요.");
+    return;
+  }
+
+  await addDoc(collection(db, "photos"), {
+    title,
+    price,
+    image,
+    account,
+    type,
+    createdAt: Date.now()
+  });
+
+  alert("등록 완료!");
+  loadItems();
+};
+
+window.loadItems = async function() {
+
+  const snapshot = await getDocs(collection(db, "photos"));
+
+  let html = "";
+
+  snapshot.forEach((docSnap) => {
+
+    const item = docSnap.data();
+
+    html += `
+      <div class="card">
+        <img src="${item.image}">
+        <div class="card-content">
+          <h3>${item.title}</h3>
+          <p>₩ ${Number(item.price).toLocaleString()}</p>
+
+          <button class="buy-btn"
+          onclick="alert('계좌번호 : ${item.account}')">
+          구매하기
+          </button>
+
+          <button class="del-btn"
+          onclick="deleteItem('${docSnap.id}')">
+          삭제
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById("items").innerHTML = html;
+};
+
+window.deleteItem = async function(id){
+
+  await deleteDoc(doc(db, "photos", id));
+
+  alert("삭제 완료");
+  loadItems();
+};
+
+loadItems();
+
 </script>
 </body>
 </html>
