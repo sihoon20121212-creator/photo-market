@@ -28,25 +28,20 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // 소문자 'photos' 컬렉션 사용
     db.collection("photos").onSnapshot(snapshot => {
         const gallery = document.getElementById("gallery");
         gallery.innerHTML = ""; 
         
-        if (snapshot.empty) {
-            gallery.innerHTML = "데이터베이스에 저장된 데이터가 없습니다.";
-            return;
-        }
-
         snapshot.forEach(doc => {
             const p = doc.data();
-            console.log("읽어온 데이터:", p); // F12 콘솔에서 데이터가 들어오는지 확인 가능
-            
+            // 데이터베이스 필드명이 소문자(p.title, p.price 등)이므로 수정함
             gallery.innerHTML += `
                 <div class="card">
-                    <img src="${p.Image || 'https://via.placeholder.com/200'}">
-                    <h3>${p.Title || '제목없음'}</h3>
-                    <p>가격: ${p.Price || 0}원</p>
-                    <p>좋아요: ${p.Likes || 0}</p>
+                    <img src="${p.image || ''}">
+                    <h3>${p.title || '제목없음'}</h3>
+                    <p>가격: ${p.price || 0}원</p>
+                    <p>좋아요: ${p.likes || 0}</p>
                 </div>
             `;
         });
@@ -54,4 +49,6 @@
 </script>
 </body>
 </html>
+
+
 
