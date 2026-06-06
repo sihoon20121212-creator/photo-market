@@ -6,12 +6,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Pretendard', sans-serif; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: sans-serif; }
         body { background:#111; color:white; }
         .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:25px; padding:20px; }
-        .card { background:#1e1e1e; border-radius:15px; padding:15px; overflow:hidden; }
-        .card img { width:100%; height:200px; object-fit:cover; margin-bottom: 10px; }
-        .buy-btn { width:100%; padding:10px; background:#2196F3; border:none; border-radius:8px; color:white; cursor:pointer; margin-top:10px; }
+        .card { background:#1e1e1e; border-radius:15px; padding:15px; }
+        .buy-btn { width:100%; padding:10px; background:#2196F3; border:none; border-radius:8px; color:white; cursor:pointer; }
     </style>
 </head>
 <body>
@@ -19,7 +18,6 @@
 <div id="gallery" class="grid"></div>
 
 <script>
-    // 관리자님이 제공해주신 설정값 적용
     const firebaseConfig = {
         apiKey: "AIzaSyBL1R4PV4ZQum_i8HHhdaama4Va4DrAHyA",
         authDomain: "sh-gallery-c84d2.firebaseapp.com",
@@ -33,7 +31,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 데이터 가져오기 및 실시간 반영
     db.collection("photos").onSnapshot(snapshot => {
         const gallery = document.getElementById("gallery");
         gallery.innerHTML = "";
@@ -42,13 +39,13 @@
             const id = doc.id;
             gallery.innerHTML += `
                 <div class="card">
-                    <img src="${p.image}" oncontextmenu="return false;">
+                    <img src="${p.image}" style="width:100%; height:200px; object-fit:cover;">
                     <h3>${p.title}</h3>
-                    <p>₩ ${p.price.toLocaleString()}</p>
+                    <p>₩ ${p.price}</p>
                     <button class="buy-btn" onclick="window.open('https://www.instagram.com/sh.market.1/')">구매 문의</button>
                     <div style="margin-top:10px">
                         <button onclick="addLike('${id}', ${p.likes})">❤️ ${p.likes}</button>
-                        <div style="font-size:0.8rem; margin:5px 0;">${(p.comments || []).map(c => `<p>• ${c}</p>`).join('')}</div>
+                        <div style="font-size:0.8rem; margin:5px 0;">${(p.Comment || []).map(c => `<p>• ${c}</p>`).join('')}</div>
                         <input id="cmt-${id}" placeholder="댓글 입력..." style="width:70%">
                         <button onclick="addComment('${id}')">등록</button>
                     </div>
@@ -57,17 +54,15 @@
         });
     });
 
-    // 좋아요 기능
     function addLike(id, currentLikes) {
         db.collection("photos").doc(id).update({ likes: currentLikes + 1 });
     }
 
-    // 댓글 기능
     function addComment(id) {
         const input = document.getElementById('cmt-'+id);
         if(!input.value) return;
         db.collection("photos").doc(id).update({
-            comments: firebase.firestore.FieldValue.arrayUnion(input.value)
+            Comment: firebase.firestore.FieldValue.arrayUnion(input.value)
         });
         input.value = '';
     }
