@@ -6,7 +6,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        body { background: #111; color: white; padding: 20px; font-family: sans-serif; }
+        body { background: #111; color: white; font-family: sans-serif; padding: 20px; }
         .card { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
         img { width: 100%; border-radius: 5px; }
     </style>
@@ -25,7 +25,6 @@
         appId: "1:1082517064048:web:18e97377dea38899c2e7b5",
         measurementId: "G-NM0VP2JQTT"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -33,13 +32,18 @@
         const gallery = document.getElementById("gallery");
         gallery.innerHTML = ""; 
         
+        if (snapshot.empty) {
+            gallery.innerHTML = "데이터베이스에 저장된 데이터가 없습니다.";
+            return;
+        }
+
         snapshot.forEach(doc => {
             const p = doc.data();
-            console.log("데이터 확인:", p); // F12 콘솔에서 필드명을 정확히 알려줍니다.
+            console.log("읽어온 데이터:", p); // F12 콘솔에서 데이터가 들어오는지 확인 가능
             
             gallery.innerHTML += `
                 <div class="card">
-                    <img src="${p.Image || ''}">
+                    <img src="${p.Image || 'https://via.placeholder.com/200'}">
                     <h3>${p.Title || '제목없음'}</h3>
                     <p>가격: ${p.Price || 0}원</p>
                     <p>좋아요: ${p.Likes || 0}</p>
@@ -50,3 +54,4 @@
 </script>
 </body>
 </html>
+
