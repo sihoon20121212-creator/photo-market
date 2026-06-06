@@ -2,12 +2,11 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SH Gallery</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        body { background: #111; color: white; font-family: sans-serif; margin: 0; padding: 20px; }
+        body { background: #111; color: white; padding: 20px; font-family: sans-serif; }
         .card { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
         img { width: 100%; border-radius: 5px; }
     </style>
@@ -30,24 +29,20 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 여기서 "photos" (소문자 p)로 수정했습니다!
     db.collection("photos").onSnapshot(snapshot => {
         const gallery = document.getElementById("gallery");
         gallery.innerHTML = ""; 
         
-        if (snapshot.empty) {
-            gallery.innerHTML = "등록된 사진이 없습니다.";
-            return;
-        }
-
         snapshot.forEach(doc => {
             const p = doc.data();
+            console.log("데이터 확인:", p); // F12 콘솔에서 필드명을 정확히 알려줍니다.
+            
             gallery.innerHTML += `
                 <div class="card">
-                    <img src="${p.Image}">
-                    <h3>${p.Title}</h3>
-                    <p>가격: ${p.Price}원</p>
-                    <p>좋아요: ${p.Likes}</p>
+                    <img src="${p.Image || ''}">
+                    <h3>${p.Title || '제목없음'}</h3>
+                    <p>가격: ${p.Price || 0}원</p>
+                    <p>좋아요: ${p.Likes || 0}</p>
                 </div>
             `;
         });
