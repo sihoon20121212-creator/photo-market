@@ -2,13 +2,14 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SH Gallery</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         body { background: #111; color: white; font-family: sans-serif; padding: 20px; }
         .card { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        img { width: 100%; border-radius: 5px; }
+        img { width: 100%; border-radius: 5px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -25,17 +26,22 @@
         appId: "1:1082517064048:web:18e97377dea38899c2e7b5",
         measurementId: "G-NM0VP2JQTT"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 소문자 'photos' 컬렉션 사용
+    // 데이터베이스의 소문자 필드명에 맞춘 코드
     db.collection("photos").onSnapshot(snapshot => {
         const gallery = document.getElementById("gallery");
         gallery.innerHTML = ""; 
         
+        if (snapshot.empty) {
+            gallery.innerHTML = "저장된 데이터가 없습니다.";
+            return;
+        }
+
         snapshot.forEach(doc => {
             const p = doc.data();
-            // 데이터베이스 필드명이 소문자(p.title, p.price 등)이므로 수정함
             gallery.innerHTML += `
                 <div class="card">
                     <img src="${p.image || ''}">
