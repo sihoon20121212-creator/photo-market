@@ -19,36 +19,35 @@
 <div id="gallery">로딩 중...</div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyBL1R4PV4ZQum_i8HHhdaama4Va4DrAHyA",
-        authDomain: "sh-gallery-c84d2.firebaseapp.com",
-        projectId: "sh-gallery-c84d2",
-        storageBucket: "sh-gallery-c84d2.firebasestorage.app",
-        messagingSenderId: "1082517064048",
-        appId: "1:1082517064048:web:18e97377dea38899c2e7b5",
-        measurementId: "G-NM0VP2JQTT"
-    };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+const firebaseConfig = {
+   ...
+};
 
-    // 데이터 가져오기 (소문자 photos 컬렉션)
-    db.collection("photos").onSnapshot(snapshot => {
-        const gallery = document.getElementById("gallery");
-        gallery.innerHTML = ""; 
-        
-        snapshot.forEach(doc => {
-            const p = doc.data();
-            // 이미지, 제목, 가격만 표시
-            gallery.innerHTML += `
-                <div class="card">
-                    <img src="${p.image}">
-                    <h3>${p.title}</h3>
-                    <p>가격: ${p.price}원</p>
-                </div>
-            `;
-        });
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+db.collection("photos").onSnapshot(snapshot => {
+
+    const gallery = document.getElementById("gallery");
+    gallery.innerHTML = "";
+
+    snapshot.forEach(doc => {
+
+        const p = doc.data();
+
+        gallery.innerHTML += `
+        <div class="card">
+            <img src="${p.Image}" onerror="this.style.display='none'">
+            <h3>${p.Title}</h3>
+            <p>가격: ${p.Price}원</p>
+        </div>
+        `;
+
     });
+
+});
+
 </script>
 </body>
 </html>
